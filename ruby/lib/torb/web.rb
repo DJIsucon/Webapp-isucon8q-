@@ -267,6 +267,7 @@ module Torb
       end
 
       def get_events_from_array(event_ids, login_user_id = nil)
+        return {} if event_ids.size == 0
         events = db.xquery("SELECT * FROM events WHERE id IN (#{event_ids.join(',')})")
         return {} if events.nil?
 
