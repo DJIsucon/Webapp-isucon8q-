@@ -354,7 +354,7 @@ module Torb
 
       rows_reserve = db.xquery('SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5', user['id'])
       event_ids = rows_reserve.map { |row| row['event_id'] }
-
+      events = get_events_from_array(event_ids)
 
       recent_reservations = rows_reserve.map do |row|
         event = events[row['event_id']]
