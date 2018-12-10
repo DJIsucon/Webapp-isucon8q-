@@ -169,8 +169,8 @@ module Torb
         res_hash = reservations.map { |reservation| [reservation['sheet_id'], reservation] }.to_h
 
         (1..MAX_SHEETS_NUM).each do |sheet_id|
-          sheet = { 'num' => sheet_id_to_num(reservation['sheet_id']) }
-          sheet_rank = sheets_rank(reservation['sheet_id'])
+          sheet = { 'num' => sheet_id_to_num(sheet_id) }
+          sheet_rank = sheets_rank(sheet_id)
 
           unless res_hash[sheet_id].nil?
             event['sheets'][sheet_rank]['price'] ||= event['price'] + SHEETS_PRICE[sheet_rank]
