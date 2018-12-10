@@ -587,6 +587,7 @@ module Torb
         canceled_at:    reservation['canceled_at']&.iso8601 || '',
         price:          reservation['event_price'] + reservation['sheet_price'],
       }
+      end
       render_report_csv(reports)
     end
 
