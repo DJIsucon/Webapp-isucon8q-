@@ -502,7 +502,7 @@ module Torb
 
       administrator = db.xquery('SELECT * FROM administrators WHERE login_name = ? LIMIT 1', login_name).first
       pass_hash     = db.xquery('SELECT SHA2(?, 256) AS pass_hash', password).first['pass_hash']
-      halt_with_error 401, 'authentication_failed' if administrator.nil? || pass_hash != administrator['pass_hash']
+      halt_with_error 401, 'authentication_failed' if administrator.nil? || administrator.empty? || pass_hash != administrator['pass_hash']
 
       session['administrator_id'] = administrator['id']
 
