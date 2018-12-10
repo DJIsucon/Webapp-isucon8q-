@@ -158,32 +158,28 @@ module Torb
           event['sheets'][rank] = { 'total' => 0, 'remains' => 0, 'detail' => [] }
         end
 
-        sheets = db.query('SELECT * FROM sheets ORDER BY `rank`, num')
-        sheets.each do |sheet|
-          event['sheets'][sheet['rank']]['price'] ||= event['price'] + sheet['price']
-          event['total'] += 1
-          event['sheets'][sheet['rank']]['total'] += 1
+        # このイベントに属する最新の全予約
+        reservations = db.xquery('SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)', event['id'])
+        reservations.each do |reservation|
+          sheet_rank = sheets_rank(reservation['sheet_id'])
+          event['sheets'][sheet_rank]['price'] ||= event['price'] + SHEETS_PRICE[sheet_rank]
+          event['sheets'][sheet_rank]['total'] += 1
 
-          reservation = db.xquery('SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)', event['id'], sheet['id']).first
-          if reservation
-            sheet['mine']        = true if login_user_id && reservation['user_id'] == login_user_id
-            sheet['reserved']    = true
-            sheet['reserved_at'] = reservation['reserved_at'].to_i
-          else
-            event['remains'] += 1
-            event['sheets'][sheet['rank']]['remains'] += 1
-          end
-
-          event['sheets'][sheet['rank']]['detail'].push(sheet)
-
-          sheet.delete('id')
-          sheet.delete('price')
-          sheet.delete('rank')
+          sheet = {}
+          sheet['mine']        = true if login_user_id && reservation['user_id'] == login_user_id
+          sheet['reserved']    = true
+          sheet['reserved_at'] = reservation['reserved_at'].to_i
+          sheet['num'] = sheet_id_to_num(reservation['sheet_id'])
+          event['sheets'][sheet_rank]['detail'].push(sheet)
         end
-
+        %w[S A B C].each do |rank|
+          # 合計予約済み席数
+          event['total'] += event['sheets'][rank]['total']
+          event['sheets'][rank]['total'] += MAX_SHEETS_NUM_RANK[rank] - event['sheets'][rank]['total']
+        end
+        event['remains'] = MAX_SHEETS_NUM - event['total']
         event['public'] = event.delete('public_fg')
         event['closed'] = event.delete('closed_fg')
-
         event
       end
 
