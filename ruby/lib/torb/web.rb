@@ -62,7 +62,8 @@ module Torb
         db.query('BEGIN')
         begin
           events = db.query('SELECT * FROM events ORDER BY id ASC').select(&where)
-          sheets = db.query('SELECT * FROM sheets ORDER BY `rank`, num')
+          @sheets ||= db.query('SELECT * FROM sheets ORDER BY `rank`, num')
+          reservations = db.xquery('SELECT * FROM reservations WHERE canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)')
           response = events.map do |event|
             event['total']   = 0
             event['remains'] = 0
@@ -76,10 +77,14 @@ module Torb
               event['total'] += 1
               event['sheets'][sheet['rank']]['total'] += 1
 
-              reservation = db.xquery('SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL', event['id'], sheet['id']).first
-              if reservation
+              is_reservation = false
+              reservations.each do |r| 
+                is_reservation = true if r['event_id'] == event['id'] && r['sheet_id'] == sheet['id']
+                # 枝切り
+                break if r['event_id'] > event['id']
+              end
+              if is_reservation
                 sheet['reserved']    = true
-                sheet['reserved_at'] = reservation['reserved_at'].to_i
               else
                 event['remains'] += 1
                 event['sheets'][sheet['rank']]['remains'] += 1
