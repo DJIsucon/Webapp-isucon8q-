@@ -8,7 +8,7 @@ require 'rack-lineprof'
 
 module Torb
   class Web < Sinatra::Base
-    use Rack::Lineprof, profile: './web.rb'
+    # use Rack::Lineprof, profile: './web.rb'
     configure :development do
       require 'sinatra/reloader'
       register Sinatra::Reloader
