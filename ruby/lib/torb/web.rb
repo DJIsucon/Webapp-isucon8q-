@@ -3,9 +3,12 @@ require 'sinatra/base'
 require 'erubi'
 require 'mysql2'
 require 'mysql2-cs-bind'
+require 'rack-lineprof'
+
 
 module Torb
   class Web < Sinatra::Base
+    use Rack::Lineprof, profile: './web.rb'
     configure :development do
       require 'sinatra/reloader'
       register Sinatra::Reloader
@@ -58,10 +61,33 @@ module Torb
 
         db.query('BEGIN')
         begin
-          event_ids = db.query('SELECT * FROM events ORDER BY id ASC').select(&where).map { |e| e['id'] }
-          events = event_ids.map do |event_id|
-            event = get_event(event_id)
-            event['sheets'].each { |sheet| sheet.delete('detail') }
+          events = db.query('SELECT * FROM events ORDER BY id ASC').select(&where)
+          sheets = db.query('SELECT * FROM sheets ORDER BY `rank`, num')
+          response = events.map do |event|
+            event['total']   = 0
+            event['remains'] = 0
+            event['sheets'] = {}
+            %w[S A B C].each do |rank|
+              event['sheets'][rank] = { 'total' => 0, 'remains' => 0 }
+            end
+
+            sheets.each do |sheet|
+              event['sheets'][sheet['rank']]['price'] ||= event['price'] + sheet['price']
+              event['total'] += 1
+              event['sheets'][sheet['rank']]['total'] += 1
+
+              reservation = db.xquery('SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL', event['id'], sheet['id']).first
+              if reservation
+                sheet['reserved']    = true
+                sheet['reserved_at'] = reservation['reserved_at'].to_i
+              else
+                event['remains'] += 1
+                event['sheets'][sheet['rank']]['remains'] += 1
+              end
+            end
+
+            event['public'] = event.delete('public_fg')
+            event['closed'] = event.delete('closed_fg')
             event
           end
           db.query('COMMIT')
@@ -69,7 +95,7 @@ module Torb
           db.query('ROLLBACK')
         end
 
-        events
+        response
       end
 
       def get_event(event_id, login_user_id = nil)
@@ -203,10 +229,12 @@ module Torb
     end
 
     get '/api/users/:id', login_required: true do |user_id|
-      user = db.xquery('SELECT id, nickname FROM users WHERE id = ?', user_id).first
-      if user['id'] != get_login_user['id']
+      return if session[:user_id].nil?
+      if user_id != session[:user_id].to_s
         halt_with_error 403, 'forbidden'
       end
+
+      user = db.xquery('SELECT id, nickname FROM users WHERE id = ?', user_id).first
 
       rows = db.xquery('SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5', user['id'])
       recent_reservations = rows.map do |row|
