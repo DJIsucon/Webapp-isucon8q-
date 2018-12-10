@@ -574,13 +574,13 @@ module Torb
     get '/admin/api/reports/events/:id/sales', admin_login_required: true do |event_id|
       event = get_event(event_id)
 
-      reservations = db.xquery('SELECT r.id, r.event_id, r.sheet_id, r.user_id, s.rank AS sheet_rank, s.num AS sheet_num, s.price AS sheet_price, e.id AS event_id, e.price AS event_price, e.price + s.price AS price, DATE_FORMAT(r.canceled_at, "%Y-%m-%dT%TZ") AS canceled_at, DATE_FORMAT(r.reserved_at, "%Y-%m-%dT%TZ") AS sold_at  FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = ? ORDER BY reserved_at ASC FOR UPDATE', event['id'])
+      reservations = db.xquery('SELECT r.id, r.event_id, r.sheet_id, r.user_id, s.rank AS sheet_rank, s.num AS sheet_num, s.price AS sheet_price, e.id AS event_id, e.price AS event_price, e.price + s.price AS price, DATE_FORMAT(r.canceled_at, "%Y-%m-%dT%TZ") AS canceled_at, DATE_FORMAT(r.reserved_at, "%Y-%m-%dT%TZ") AS sold_at  FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = ? ORDER BY r.reserved_at ASC FOR UPDATE', event['id'])
       render_report_csv(reservations)
     end
 
     get '/admin/api/reports/sales', admin_login_required: true do
-      reservations = db.xquery('SELECT r.id, r.event_id, r.sheet_id, r.user_id, s.rank AS sheet_rank, s.num AS sheet_num, s.price AS sheet_price, e.id AS event_id, e.price AS event_price, e.price + s.price AS price, DATE_FORMAT(r.canceled_at, "%Y-%m-%dT%TZ") AS canceled_at, DATE_FORMAT(r.reserved_at, "%Y-%m-%dT%TZ") AS sold_at  FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id ORDER BY reserved_at ASC FOR UPDATE')
-       render_report_csv(reservations)
+      reservations = db.xquery('SELECT r.id, r.event_id, r.sheet_id, r.user_id, s.rank AS sheet_rank, s.num AS sheet_num, s.price AS sheet_price, e.id AS event_id, e.price AS event_price, e.price + s.price AS price, DATE_FORMAT(r.canceled_at, "%Y-%m-%dT%TZ") AS canceled_at, DATE_FORMAT(r.reserved_at, "%Y-%m-%dT%TZ") AS sold_at  FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id ORDER BY r.reserved_at ASC FOR UPDATE')
+      render_report_csv(reservations)
     end
   end
 end
