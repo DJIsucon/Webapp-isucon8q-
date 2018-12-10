@@ -358,6 +358,11 @@ module Torb
 
       recent_reservations = rows_reserve.map do |row|
         event = events[row['event_id']]
+        puts '---------------------------------'
+        puts events
+        puts event['sheets']
+        puts row['sheet_rank']
+        puts '---------------------------------'
         price = event['sheets'][row['sheet_rank']]['price']
         event.delete('sheets')
         event.delete('total')
