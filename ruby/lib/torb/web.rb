@@ -267,7 +267,7 @@ module Torb
       end
 
       def get_events_from_array(event_ids, login_user_id = nil)
-        events = db.xquery('SELECT * FROM events WHERE id in (?)', event_ids.join(','))
+        events = db.xquery("SELECT * FROM events WHERE id IN (#{event_ids.join(',')})")
         return {} if events.nil?
 
         events.each do |event|
@@ -358,11 +358,6 @@ module Torb
 
       recent_reservations = rows_reserve.map do |row|
         event = events[row['event_id']]
-        puts '---------------------------------'
-        puts events
-        puts event['sheets']
-        puts row['sheet_rank']
-        puts '---------------------------------'
         price = event['sheets'][row['sheet_rank']]['price']
         event.delete('sheets')
         event.delete('total')
