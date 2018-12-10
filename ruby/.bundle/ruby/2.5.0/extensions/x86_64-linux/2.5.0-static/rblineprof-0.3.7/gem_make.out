@@ -1,0 +1,55 @@
+current directory: /home/isucon/torb/webapp/ruby/.bundle/ruby/2.5.0/gems/rblineprof-0.3.7/ext
+/home/isucon/local/ruby/bin/ruby -r ./siteconf20181210-26701-10v8au4.rb extconf.rb
+checking for rb_os_allocated_objects()... no
+checking for rb_gc_stat()... yes
+checking for rb_profile_frames()... yes
+checking for rb_tracepoint_new()... yes
+creating Makefile
+
+current directory: /home/isucon/torb/webapp/ruby/.bundle/ruby/2.5.0/gems/rblineprof-0.3.7/ext
+make "DESTDIR=" clean
+
+current directory: /home/isucon/torb/webapp/ruby/.bundle/ruby/2.5.0/gems/rblineprof-0.3.7/ext
+make "DESTDIR="
+compiling rblineprof.c
+rblineprof.c: 関数 ‘cputime_usec’ 内:
+rblineprof.c:149:3: 警告: ISO C90 は宣言とコードの混合を禁止しています [-Wdeclaration-after-statement]
+   struct rusage usage;
+   ^
+rblineprof.c: 関数 ‘stackframe_record’ 内:
+rblineprof.c:214:3: 警告: ISO C90 は宣言とコードの混合を禁止しています [-Wdeclaration-after-statement]
+   snapshot_t diff = snapshot_diff(&now, &frame->start);
+   ^
+rblineprof.c: 関数 ‘sourcefile_lookup’ 内:
+rblineprof.c:271:7: 警告: ISO C90 は宣言とコードの混合を禁止しています [-Wdeclaration-after-statement]
+       long rc = rb_reg_search(rblineprof.source_regex, rb_str_new2(filename), 0, 0);
+       ^
+rblineprof.c: 関数 ‘profiler_hook’ 内:
+rblineprof.c:417:3: 警告: ISO C90 は宣言とコードの混合を禁止しています [-Wdeclaration-after-statement]
+   snapshot_t now = {
+   ^
+rblineprof.c: 関数 ‘cleanup_files’ 内:
+rblineprof.c:546:3: 警告: ISO C90 は宣言とコードの混合を禁止しています [-Wdeclaration-after-statement]
+   sourcefile_t *sourcefile = (sourcefile_t*)record;
+   ^
+rblineprof.c: 関数 ‘summarize_files’ 内:
+rblineprof.c:562:3: 警告: ISO C90 は宣言とコードの混合を禁止しています [-Wdeclaration-after-statement]
+   VALUE ret = (VALUE)arg;
+   ^
+rblineprof.c: 関数 ‘lineprof’ 内:
+rblineprof.c:619:3: 警告: ISO C90 は宣言とコードの混合を禁止しています [-Wdeclaration-after-statement]
+   VALUE filename_class = rb_obj_class(filename);
+   ^
+rblineprof.c:656:3: 警告: ISO C90 は宣言とコードの混合を禁止しています [-Wdeclaration-after-statement]
+   VALUE ret = rb_hash_new();
+   ^
+rblineprof.c: トップレベル:
+cc1: 警告: 認識できないコマンドラインオプション "-Wno-self-assign" です [デフォルトで有効]
+cc1: 警告: 認識できないコマンドラインオプション "-Wno-constant-logical-operand" です [デフォルトで有効]
+cc1: 警告: 認識できないコマンドラインオプション "-Wno-parentheses-equality" です [デフォルトで有効]
+cc1: 警告: 認識できないコマンドラインオプション "-Wno-tautological-compare" です [デフォルトで有効]
+linking shared-object rblineprof.so
+
+current directory: /home/isucon/torb/webapp/ruby/.bundle/ruby/2.5.0/gems/rblineprof-0.3.7/ext
+make "DESTDIR=" install
+/bin/install -c -m 0755 rblineprof.so ./.gem.20181210-26701-17nzknc
