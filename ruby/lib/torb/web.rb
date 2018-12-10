@@ -188,7 +188,7 @@ module Torb
         %w[S A B C].each do |rank|
           # 合計予約済み席数
           event['total'] += event['sheets'][rank]['total']
-          event['sheets'][rank]['total'] += MAX_SHEETS_NUM_RANK[rank] - event['sheets'][rank]['total']
+          event['sheets'][rank]['remains'] = MAX_SHEETS_NUM_RANK[rank] - event['sheets'][rank]['total']
         end
         event['remains'] = MAX_SHEETS_NUM - event['total']
         event['public'] = event.delete('public_fg')
@@ -307,7 +307,7 @@ module Torb
           %w[S A B C].each do |rank|
             # 合計予約済み席数
             event['total'] += event['sheets'][rank]['total']
-            event['sheets'][rank]['total'] += MAX_SHEETS_NUM_RANK[rank] - event['sheets'][rank]['total']
+            event['sheets'][rank]['remain'] += MAX_SHEETS_NUM_RANK[rank] - event['sheets'][rank]['total']
           end
           event['remains'] = MAX_SHEETS_NUM - event['total']
           event['public'] = event.delete('public_fg')
