@@ -72,7 +72,7 @@ module Torb
               event['sheets'][rank] = { 'total' => 0, 'remains' => 0 }
             end
 
-            sheets.each do |sheet|
+            @sheets.each do |sheet|
               event['sheets'][sheet['rank']]['price'] ||= event['price'] + sheet['price']
               event['total'] += 1
               event['sheets'][sheet['rank']]['total'] += 1
