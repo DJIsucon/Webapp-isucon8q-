@@ -362,7 +362,7 @@ module Torb
       sheet = nil
       reservation_id = nil
       loop do
-        sheet = db.xquery('SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM active_reservations WHERE event_id = ? FOR UPDATE) AND `rank` = ? ORDER BY RAND()', event['id'], rank).first
+        sheet = db.xquery('SELECT * FROM sheets WHERE id IN (SELECT sheet_id FROM active_reservations WHERE event_id = ? FOR UPDATE) AND `rank` = ? ORDER BY RAND()', event['id'], rank).first
         halt_with_error 409, 'sold_out' unless sheet
         db.query('BEGIN')
         begin
