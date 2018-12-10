@@ -314,10 +314,11 @@ module Torb
       sheet = nil
       reservation_id = nil
       loop do
-        sheet = db.xquery('SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1', event['id'], rank).first
+        sheet = db.xquery('SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM active_reservations WHERE event_id = ? IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND() LIMIT 1', event['id'], rank).first
         halt_with_error 409, 'sold_out' unless sheet
         db.query('BEGIN')
         begin
+          db.xquery('INSERT INTO active_reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)', event['id'], sheet['id'], user['id'], Time.now.utc.strftime('%F %T.%6N'))
           db.xquery('INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)', event['id'], sheet['id'], user['id'], Time.now.utc.strftime('%F %T.%6N'))
           reservation_id = db.last_id
           db.query('COMMIT')
@@ -345,7 +346,7 @@ module Torb
 
       db.query('BEGIN')
       begin
-        reservation = db.xquery('SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE', event['id'], sheet['id']).first
+        reservation = db.xquery('SELECT * FROM active_reservations WHERE event_id = ? AND sheet_id = ? IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE', event['id'], sheet['id']).first
         unless reservation
           db.query('ROLLBACK')
           halt_with_error 400, 'not_reserved'
@@ -355,7 +356,9 @@ module Torb
           halt_with_error 403, 'not_permitted'
         end
 
-        db.xquery('UPDATE reservations SET canceled_at = ? WHERE id = ?', Time.now.utc.strftime('%F %T.%6N'), reservation['id'])
+        canceled_at = Time.now.utc.strftime('%F %T.%6N')
+        db.xquery('DELETE reservations WHERE id = ?', reservation['id'])
+        db.xquery('INSERT INTO active_reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)', reservation['event_id'], sheet['sheet_id'], user['user_id'], canceled_at)
         db.query('COMMIT')
       rescue => e
         warn "rollback by: #{e}"
