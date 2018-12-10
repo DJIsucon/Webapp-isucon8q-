@@ -407,7 +407,7 @@ module Torb
 
         updated_at = Time.now.utc.strftime('%F %T.%6N')
         db.xquery('UPDATE reservations SET canceled_at = ?, updated_at = ? WHERE id = ?', updated_at, updated_at, reservation['id'])
-        db.xquery('DELETE active_reservations WHERE id = ?', reservation['id'])
+        db.xquery('DELETE FROM active_reservations WHERE id = ?', reservation['id'])
         db.query('COMMIT')
       rescue => e
         warn "rollback by: #{e}"
