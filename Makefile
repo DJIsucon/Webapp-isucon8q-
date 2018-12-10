@@ -29,11 +29,11 @@ systemctl-list:
 alp:
 	cat /var/log/h2o/access.log | alp --aggregates="/api/users/.*","/api/events/.*","/admin/api/reports/events/.*" --sum -r
 pt-query-digest:
-	pt-query-digest --limit 10 /var/log/mariadb/mariadb-slow.log 
+	pt-query-digest --limit 10 /var/log/mariadb/mariadb-slow.log
 
 reset-log:
-	@sudo rm /var/log/mariadb/mariadb-slow.log 
-	@sudo rm /var/log/h2o/access.log
+	@sudo mv /var/log/mariadb/mariadb-slow.log /var/log/mariadb/mariadb-slow-`date +%m%d-%H%M%S.log`
+	@sudo mv /var/log/h2o/access.log /var/log/h2o/access-`date +%m%d-%H%M%S.log`
 	make h2o
 	make mariadb
 
