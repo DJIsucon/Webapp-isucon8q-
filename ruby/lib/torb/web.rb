@@ -175,9 +175,10 @@ module Torb
           event['sheets'][sheet_rank]['price'] ||= event['price'] + SHEETS_PRICE[sheet_rank]
 
           reservation = res_hash[sheet_id]
-          unless reservation.nil?
-            event['sheets'][sheet_rank]['total'] += 1
-
+          if reservation.nil?
+            event['remains'] += 1
+            event['sheets'][sheet_rank]['remains'] += 1
+          else
             sheet['mine']        = true if login_user_id && reservation['user_id'] == login_user_id
             sheet['reserved']    = true
             sheet['reserved_at'] = reservation['reserved_at'].to_i
@@ -186,11 +187,9 @@ module Torb
         end
 
         %w[S A B C].each do |rank|
-          # 合計予約済み席数
-          event['total'] += event['sheets'][rank]['total']
-          event['sheets'][rank]['remains'] = MAX_SHEETS_NUM_RANK[rank] - event['sheets'][rank]['total']
+          event['sheets'][rank]['total'] = MAX_SHEETS_NUM_RANK[rank]
         end
-        event['remains'] = MAX_SHEETS_NUM - event['total']
+        event['total'] = MAX_SHEETS_NUM
         event['public'] = event.delete('public_fg')
         event['closed'] = event.delete('closed_fg')
         event
@@ -294,9 +293,10 @@ module Torb
             event['sheets'][sheet_rank]['price'] ||= event['price'] + SHEETS_PRICE[sheet_rank]
 
             reservation = res_hash[sheet_id]
-            unless reservation.nil?
-              event['sheets'][sheet_rank]['total'] += 1
-
+            if reservation.nil?
+              event['remains'] += 1
+              event['sheets'][sheet_rank]['remains'] += 1
+            else
               sheet['mine']        = true if login_user_id && reservation['user_id'] == login_user_id
               sheet['reserved']    = true
               sheet['reserved_at'] = reservation['reserved_at'].to_i
@@ -305,11 +305,9 @@ module Torb
           end
 
           %w[S A B C].each do |rank|
-            # 合計予約済み席数
-            event['total'] += event['sheets'][rank]['total']
-            event['sheets'][rank]['remain'] += MAX_SHEETS_NUM_RANK[rank] - event['sheets'][rank]['total']
+            event['sheets'][rank]['total'] = MAX_SHEETS_NUM_RANK[rank]
           end
-          event['remains'] = MAX_SHEETS_NUM - event['total']
+          event['total'] = MAX_SHEETS_NUM
           event['public'] = event.delete('public_fg')
           event['closed'] = event.delete('closed_fg')
         end
