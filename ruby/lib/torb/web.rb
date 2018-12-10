@@ -59,7 +59,7 @@ module Torb
       def get_events_for_index
         db.query('BEGIN')
         begin
-          events = db.query('SELECT * FROM events WHERE public_fg == 1 ORDER BY id ASC')
+          events = db.query('SELECT * FROM events WHERE public_fg = 1 ORDER BY id ASC')
           sheets = db.query('SELECT * FROM sheets ORDER BY `rank`, num')
           reservations = db.xquery("SELECT * FROM reservations WHERE event_id in (#{events.map{|e| e['id']}.join(',')}) AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)")
           response = events.map do |event|
