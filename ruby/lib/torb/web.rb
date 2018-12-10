@@ -362,12 +362,13 @@ module Torb
       sheet = nil
       reservation_id = nil
       loop do
-        sheet = db.xquery('SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL FOR UPDATE) AND `rank` = ? ORDER BY RAND()', event['id'], rank).first
+        sheet = db.xquery('SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM active_reservations WHERE event_id = ? FOR UPDATE) AND `rank` = ? ORDER BY RAND()', event['id'], rank).first
         halt_with_error 409, 'sold_out' unless sheet
         db.query('BEGIN')
         begin
           updated_at = Time.now.utc.strftime('%F %T.%6N')
           db.xquery('INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at, updated_at) VALUES (?, ?, ?, ?, ?)', event['id'], sheet['id'], user['id'], updated_at, updated_at)
+          db.xquery('INSERT INTO active_reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)', event['id'], sheet['id'], user['id'], updated_at)
           reservation_id = db.last_id
           db.query('COMMIT')
         rescue => e
@@ -406,6 +407,7 @@ module Torb
 
         updated_at = Time.now.utc.strftime('%F %T.%6N')
         db.xquery('UPDATE reservations SET canceled_at = ?, updated_at = ? WHERE id = ?', updated_at, updated_at, reservation['id'])
+        db.xquery('DELETE active_reservations WHERE id = ?', reservation['id'])
         db.query('COMMIT')
       rescue => e
         warn "rollback by: #{e}"
