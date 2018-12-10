@@ -81,9 +81,9 @@ module Torb
               event['sheets'][sheet['rank']]['total'] += 1
 
               is_reservation = false
-              reservations.each do |r| 
+              reservations.each do |r|
                 if r['event_id'] == event['id'] && r['sheet_id'] == sheet['id']
-                  is_reservation = true 
+                  is_reservation = true
                   break
                 end
                 # 枝切り
@@ -272,6 +272,7 @@ module Torb
       end
 
       def get_events_from_array(event_ids, login_user_id = nil)
+        return {} if event_ids.size == 0
         events = db.xquery("SELECT * FROM events WHERE id IN (#{event_ids.join(',')})")
         return {} if events.nil?
 
@@ -403,7 +404,7 @@ module Torb
 
       user      = db.xquery('SELECT * FROM users WHERE login_name = ? LIMIT 1', login_name).first
       pass_hash = db.xquery('SELECT SHA2(?, 256) AS pass_hash', password).first['pass_hash']
-      halt_with_error 401, 'authentication_failed' if user.nil? || pass_hash != user['pass_hash']
+      halt_with_error 401, 'authentication_failed' if user.nil? || user.empty? || pass_hash != user['pass_hash']
 
       session['user_id'] = user['id']
 
