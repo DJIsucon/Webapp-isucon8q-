@@ -252,7 +252,7 @@ module Torb
       password   = body_params['password']
 
       user      = db.xquery('SELECT * FROM users WHERE login_name = ? LIMIT 1', login_name).first
-      pass_hash = db.xquery('SELECT SHA2(?, 256) AS pass_hash LIMIT 1', password).first['pass_hash']
+      pass_hash = db.xquery('SELECT SHA2(?, 256) AS pass_hash', password).first['pass_hash']
       halt_with_error 401, 'authentication_failed' if user.nil? || pass_hash != user['pass_hash']
 
       session['user_id'] = user['id']
