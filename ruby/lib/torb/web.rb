@@ -76,7 +76,7 @@ module Torb
       end
 
       def get_event(event_id, login_user_id = nil)
-        event = db.xquery('SELECT * FROM events WHERE id = ?', event_id).first
+        event = db.xquery('SELECT * FROM events WHERE id = ? LIMIT 1', event_id).first
         return unless event
 
         # zero fill
@@ -93,7 +93,7 @@ module Torb
           event['total'] += 1
           event['sheets'][sheet['rank']]['total'] += 1
 
-          reservation = db.xquery('SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)', event['id'], sheet['id']).first
+          reservation = db.xquery('SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at) LIMIT 1', event['id'], sheet['id']).first
           if reservation
             sheet['mine']        = true if login_user_id && reservation['user_id'] == login_user_id
             sheet['reserved']    = true
@@ -127,17 +127,17 @@ module Torb
       def get_login_user
         user_id = session[:user_id]
         return unless user_id
-        db.xquery('SELECT id, nickname FROM users WHERE id = ?', user_id).first
+        db.xquery('SELECT id, nickname FROM users WHERE id = ? LIMIT 1', user_id).first
       end
 
       def get_login_administrator
         administrator_id = session['administrator_id']
         return unless administrator_id
-        db.xquery('SELECT id, nickname FROM administrators WHERE id = ?', administrator_id).first
+        db.xquery('SELECT id, nickname FROM administrators WHERE id = ? LIMIT 1', administrator_id).first
       end
 
       def validate_rank(rank)
-        db.xquery('SELECT COUNT(*) AS total_sheets FROM sheets WHERE `rank` = ?', rank).first['total_sheets'] > 0
+        db.xquery('SELECT COUNT(*) AS total_sheets FROM sheets WHERE `rank` = ? LIMIT 1', rank).first['total_sheets'] > 0
       end
 
       def body_params
@@ -186,7 +186,7 @@ module Torb
 
       db.query('BEGIN')
       begin
-        duplicated = db.xquery('SELECT * FROM users WHERE login_name = ?', login_name).first
+        duplicated = db.xquery('SELECT * FROM users WHERE login_name = ? LIMIT 1', login_name).first
         if duplicated
           db.query('ROLLBACK')
           halt_with_error 409, 'duplicated'
@@ -211,7 +211,7 @@ module Torb
         halt_with_error 403, 'forbidden'
       end
 
-      user = db.xquery('SELECT id, nickname FROM users WHERE id = ?', user_id).first
+      user = db.xquery('SELECT id, nickname FROM users WHERE id = ? LIMIT 1', user_id).first
 
       rows = db.xquery('SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5', user['id'])
       recent_reservations = rows.map do |row|
@@ -233,7 +233,7 @@ module Torb
       end
 
       user['recent_reservations'] = recent_reservations
-      user['total_price'] = db.xquery('SELECT IFNULL(SUM(e.price + s.price), 0) AS total_price FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.user_id = ? AND r.canceled_at IS NULL', user['id']).first['total_price']
+      user['total_price'] = db.xquery('SELECT IFNULL(SUM(e.price + s.price), 0) AS total_price FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.user_id = ? AND r.canceled_at IS NULL LIMIT 1', user['id']).first['total_price']
 
       rows = db.xquery('SELECT event_id FROM reservations WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5', user['id'])
       recent_events = rows.map do |row|
@@ -251,8 +251,8 @@ module Torb
       login_name = body_params['login_name']
       password   = body_params['password']
 
-      user      = db.xquery('SELECT * FROM users WHERE login_name = ?', login_name).first
-      pass_hash = db.xquery('SELECT SHA2(?, 256) AS pass_hash', password).first['pass_hash']
+      user      = db.xquery('SELECT * FROM users WHERE login_name = ? LIMIT 1', login_name).first
+      pass_hash = db.xquery('SELECT SHA2(?, 256) AS pass_hash LIMIT 1', password).first['pass_hash']
       halt_with_error 401, 'authentication_failed' if user.nil? || pass_hash != user['pass_hash']
 
       session['user_id'] = user['id']
@@ -317,12 +317,12 @@ module Torb
       halt_with_error 404, 'invalid_event' unless event && event['public']
       halt_with_error 404, 'invalid_rank'  unless validate_rank(rank)
 
-      sheet = db.xquery('SELECT * FROM sheets WHERE `rank` = ? AND num = ?', rank, num).first
+      sheet = db.xquery('SELECT * FROM sheets WHERE `rank` = ? AND num = ? LIMIT 1', rank, num).first
       halt_with_error 404, 'invalid_sheet' unless sheet
 
       db.query('BEGIN')
       begin
-        reservation = db.xquery('SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE', event['id'], sheet['id']).first
+        reservation = db.xquery('SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id HAVING reserved_at = MIN(reserved_at) FOR UPDATE LIMIT 1', event['id'], sheet['id']).first
         unless reservation
           db.query('ROLLBACK')
           halt_with_error 400, 'not_reserved'
@@ -354,7 +354,7 @@ module Torb
       login_name = body_params['login_name']
       password   = body_params['password']
 
-      administrator = db.xquery('SELECT * FROM administrators WHERE login_name = ?', login_name).first
+      administrator = db.xquery('SELECT * FROM administrators WHERE login_name = ? LIMIT 1', login_name).first
       pass_hash     = db.xquery('SELECT SHA2(?, 256) AS pass_hash', password).first['pass_hash']
       halt_with_error 401, 'authentication_failed' if administrator.nil? || pass_hash != administrator['pass_hash']
 
