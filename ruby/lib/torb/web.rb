@@ -267,7 +267,7 @@ module Torb
       end
 
       def get_events_from_array(event_ids, login_user_id = nil)
-        events = db.xquery('SELECT * FROM events WHERE id in (?) LIMIT 1', event_ids.join(',')).first
+        events = db.xquery('SELECT * FROM events WHERE id in (?)', event_ids.join(','))
         return {} if events.nil?
 
         events.each do |event|
