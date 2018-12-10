@@ -284,7 +284,7 @@ module Torb
 
       user = db.xquery('SELECT id, nickname FROM users WHERE id = ? LIMIT 1', user_id).first
 
-      rows = db.xquery('SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5', user['id'])
+      rows = db.xquery('SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY updated_at DESC LIMIT 5', user['id'])
       recent_reservations = rows.map do |row|
         event = get_event(row['event_id'])
         price = event['sheets'][row['sheet_rank']]['price']
@@ -366,7 +366,8 @@ module Torb
         halt_with_error 409, 'sold_out' unless sheet
         db.query('BEGIN')
         begin
-          db.xquery('INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)', event['id'], sheet['id'], user['id'], Time.now.utc.strftime('%F %T.%6N'))
+          updated_at = Time.now.utc.strftime('%F %T.%6N')
+          db.xquery('INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at, updated_at) VALUES (?, ?, ?, ?, ?)', event['id'], sheet['id'], user['id'], updated_at, updated_at)
           reservation_id = db.last_id
           db.query('COMMIT')
         rescue => e
@@ -403,7 +404,8 @@ module Torb
           halt_with_error 403, 'not_permitted'
         end
 
-        db.xquery('UPDATE reservations SET canceled_at = ? WHERE id = ?', Time.now.utc.strftime('%F %T.%6N'), reservation['id'])
+        updated_at = Time.now.utc.strftime('%F %T.%6N')
+        db.xquery('UPDATE reservations SET canceled_at = ?, updated_at = ? WHERE id = ?', updated_at, updated_at, reservation['id'])
         db.query('COMMIT')
       rescue => e
         warn "rollback by: #{e}"
