@@ -355,7 +355,7 @@ module Torb
       event_ids = rows_reserve.map { |row| row['event_id'] }
 
       rows_events = db.xquery('SELECT event_id FROM reservations WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5', user['id'])
-      event_ids.concat(rows_events.map { |row| row['event_id'] })
+      event_ids = event_ids.concat(rows_events.map { |row| row['event_id'] }).uniq
 
       events = get_events_from_array(event_ids)
 
