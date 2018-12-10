@@ -160,7 +160,7 @@ module Torb
       end
 
       def validate_rank(rank)
-        db.xquery('SELECT COUNT(*) AS total_sheets FROM sheets WHERE `rank` = ? LIMIT 1', rank).first['total_sheets'] > 0
+        db.xquery('SELECT COUNT(id) AS total_sheets FROM sheets WHERE `rank` = ? LIMIT 1', rank).first['total_sheets'] > 0
       end
 
       def body_params
