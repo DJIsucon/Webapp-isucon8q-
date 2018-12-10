@@ -301,33 +301,7 @@ module Torb
           event['closed'] = event.delete('closed_fg')
         end
 
-        events
-      end
-
-      def get_events_for_api_user(event_ids)
-        events = db.xquery('SELECT * FROM events WHERE id in (?) LIMIT 1', event_ids.join(',')).first
-
-        events.each do |event|
-          event['total']   = 0
-          event['remains'] = 0
-          event['sheets'] = {}
-          %w[S A B C].each do |rank|
-            event['sheets'][rank] = { 'detail' => [] }
-          end
-
-          # このイベントに属する最新の全予約
-          reservations = db.xquery('SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)', event['id'])
-          reservations.each do |reservation|
-            sheet_rank = sheets_rank(reservation['sheet_id'])
-          end
-          %w[S A B C].each do |rank|
-            # 合計予約済み席数
-          end
-          event['public'] = event.delete('public_fg')
-          event['closed'] = event.delete('closed_fg')
-        end
-
-        events
+        events.map { |event| [event['id'], event] }.to_h
       end
     end
 
@@ -378,17 +352,19 @@ module Torb
       user = db.xquery('SELECT id, nickname FROM users WHERE id = ? LIMIT 1', user_id).first
 
       rows_reserve = db.xquery('SELECT r.*, s.rank AS sheet_rank, s.num AS sheet_num FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id WHERE r.user_id = ? ORDER BY IFNULL(r.canceled_at, r.reserved_at) DESC LIMIT 5', user['id'])
-      event_ids = rows_reserve.map { |row| row['event_id']}
+      event_ids = rows_reserve.map { |row| row['event_id'] }
 
       rows_events = db.xquery('SELECT event_id FROM reservations WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5', user['id'])
+      event_ids.concat(rows_events.map { |row| row['event_id'] })
+
+      events = get_events_from_array(event_ids)
 
       recent_reservations = rows_reserve.map do |row|
-        event = get_event(row['event_id'])
+        event = events[row['event_id']]
         price = event['sheets'][row['sheet_rank']]['price']
         event.delete('sheets')
         event.delete('total')
         event.delete('remains')
-
         {
           id:          row['id'],
           event:       event,
@@ -405,7 +381,7 @@ module Torb
 
       rows_events = db.xquery('SELECT event_id FROM reservations WHERE user_id = ? GROUP BY event_id ORDER BY MAX(IFNULL(canceled_at, reserved_at)) DESC LIMIT 5', user['id'])
       recent_events = rows_events.map do |row|
-        event = get_event(row['event_id'])
+        event = events[row['event_id']]
         event['sheets'].each { |_, sheet| sheet.delete('detail') }
         event
       end
