@@ -573,13 +573,13 @@ module Torb
 
     get '/admin/api/reports/events/:id/sales', admin_login_required: true do |event_id|
       event = get_event(event_id)
-
-      reservations = db.xquery("SELECT r.id AS reservation_id, r.event_id, r.sheet_id, r.user_id, s.rank AS rank, s.num AS num, s.price AS sheet_price, e.id AS event_id, e.price AS event_price, e.price + s.price AS price, IF(r.canceled_at, DATE_FORMAT(r.canceled_at, '%Y-%m-%dT%TZ'), '') AS canceled_at, DATE_FORMAT(r.reserved_at, '%Y-%m-%dT%TZ') AS sold_at FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = #{event['id']} ORDER BY r.reserved_at ASC FOR UPDATE")
+      keys = %i[reservation_id event_id rank num price user_id sold_at canceled_at]
+      reservations = db.xquery("SELECT r.id AS reservation_id, r.event_id AS event_id, r.sheet_id, r.user_id, s.rank AS rank, s.num AS num, s.price AS sheet_price, e.id, e.price AS event_price, e.price + s.price AS price, IF(r.canceled_at, DATE_FORMAT(r.canceled_at, '%Y-%m-%dT%TZ'), '') AS canceled_at, DATE_FORMAT(r.reserved_at, '%Y-%m-%dT%TZ') AS sold_at FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id WHERE r.event_id = #{event['id']} ORDER BY r.reserved_at ASC FOR UPDATE")
       render_report_csv(reservations)
     end
 
     get '/admin/api/reports/sales', admin_login_required: true do
-      reservations = db.xquery("SELECT r.id AS reservation_id, r.event_id, r.sheet_id, r.user_id, s.rank AS rank, s.num AS num, s.price AS sheet_price, e.id AS event_id, e.price AS event_price, e.price + s.price AS price, IF(r.canceled_at, DATE_FORMAT(r.canceled_at, '%Y-%m-%dT%TZ'), '') AS canceled_at, DATE_FORMAT(r.reserved_at, '%Y-%m-%dT%TZ') AS sold_at FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id ORDER BY r.reserved_at ASC FOR UPDATE")
+      reservations = db.xquery("SELECT r.id AS reservation_id, r.event_id AS event_id, r.sheet_id, r.user_id, s.rank AS rank, s.num AS num, s.price AS sheet_price, e.id, e.price AS event_price, e.price + s.price AS price, IF(r.canceled_at, DATE_FORMAT(r.canceled_at, '%Y-%m-%dT%TZ'), '') AS canceled_at, DATE_FORMAT(r.reserved_at, '%Y-%m-%dT%TZ') AS sold_at FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id ORDER BY r.reserved_at ASC FOR UPDATE")
       render_report_csv(reservations)
     end
   end
