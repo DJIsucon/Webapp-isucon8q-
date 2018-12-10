@@ -592,7 +592,7 @@ module Torb
     end
 
     get '/admin/api/reports/sales', admin_login_required: true do
-      reservations = db.query('SELECT r.id, r.event_id, r.sheet_id, r.user_id, s.rank AS sheet_rank, s.num AS sheet_num, s.price AS sheet_price, e.id AS event_id, e.price AS event_price, e.price+s.price AS price, DATE_FORMAT(r.canceled_at, "%Y-%m-%dT%TZ") AS canceled_at, DATE_FORMAT(r.reserved_at, "%Y-%m-%dT%TZ") AS sold_at  FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id ORDER BY reserved_at ASC FOR UPDATE').symbolize_keys
+      reservations = db.xquery('SELECT r.id, r.event_id, r.sheet_id, r.user_id, s.rank AS sheet_rank, s.num AS sheet_num, s.price AS sheet_price, e.id AS event_id, e.price AS event_price, e.price+s.price AS price, DATE_FORMAT(r.canceled_at, "%Y-%m-%dT%TZ") AS canceled_at, DATE_FORMAT(r.reserved_at, "%Y-%m-%dT%TZ") AS sold_at  FROM reservations r INNER JOIN sheets s ON s.id = r.sheet_id INNER JOIN events e ON e.id = r.event_id ORDER BY reserved_at ASC FOR UPDATE').symbolize_keys
       return render_report_csv(reservations)
       reports = reservations.map do |reservation|
         {
