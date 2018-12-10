@@ -68,7 +68,7 @@ module Torb
             event['remains'] = 0
             event['sheets'] = {}
             %w[S A B C].each do |rank|
-              event['sheets'][rank] = { 'total' => 0, 'remains' => 0, 'detail' => [] }
+              event['sheets'][rank] = { 'total' => 0, 'remains' => 0 }
             end
 
             sheets.each do |sheet|
@@ -84,17 +84,10 @@ module Torb
                 event['remains'] += 1
                 event['sheets'][sheet['rank']]['remains'] += 1
               end
-
-              event['sheets'][sheet['rank']]['detail'].push(sheet)
-
-              sheet.delete('id')
-              sheet.delete('price')
-              sheet.delete('rank')
             end
 
             event['public'] = event.delete('public_fg')
             event['closed'] = event.delete('closed_fg')
-            event['sheets'].each { |sheet| sheet.delete('detail') }
             event
           end
           db.query('COMMIT')
