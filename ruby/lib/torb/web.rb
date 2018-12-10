@@ -172,9 +172,10 @@ module Torb
           sheet = { 'num' => sheet_id_to_num(sheet_id) }
           sheet_rank = sheets_rank(sheet_id)
 
+          event['sheets'][sheet_rank]['price'] ||= event['price'] + SHEETS_PRICE[sheet_rank]
+
           reservation = res_hash[sheet_id]
           unless reservation.nil?
-            event['sheets'][sheet_rank]['price'] ||= event['price'] + SHEETS_PRICE[sheet_rank]
             event['sheets'][sheet_rank]['total'] += 1
 
             sheet = {}
