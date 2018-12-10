@@ -5,6 +5,7 @@ require 'mysql2'
 require 'mysql2-cs-bind'
 require 'rack-lineprof'
 
+
 module Torb
   class Web < Sinatra::Base
     use Rack::Lineprof, profile: './web.rb'
@@ -352,8 +353,6 @@ module Torb
     post '/admin/api/actions/login' do
       login_name = body_params['login_name']
       password   = body_params['password']
-      logger.info `login_name: #{loginname}`
-      logger.info `password: #{password}`
 
       administrator = db.xquery('SELECT * FROM administrators WHERE login_name = ?', login_name).first
       pass_hash     = db.xquery('SELECT SHA2(?, 256) AS pass_hash', password).first['pass_hash']
