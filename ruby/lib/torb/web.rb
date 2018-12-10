@@ -61,9 +61,9 @@ module Torb
 
         db.query('BEGIN')
         begin
-          events = db.query('SELECT * FROM events WHERE public_fg = 1 ORDER BY id ASC')
+          events = db.query('SELECT * FROM events ORDER BY id ASC').select(&where)
           sheets = db.query('SELECT * FROM sheets ORDER BY `rank`, num')
-          reservations = db.xquery("SELECT * FROM reservations WHERE event_id in (#{events.map{|e| e['id']}.join(',')}) canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)")
+          reservations = db.xquery("SELECT * FROM reservations WHERE event_id in (#{events.map{|e| e['id']}.join(',')}) AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)")
           response = events.map do |event|
             event['total']   = 0
             event['remains'] = 0
