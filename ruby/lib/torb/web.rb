@@ -563,12 +563,18 @@ module Torb
       begin
         db.xquery('UPDATE events SET public_fg = ?, closed_fg = ? WHERE id = ?', public, closed, event['id'])
         db.query('COMMIT')
+        new_event = {
+          id: event_id,
+          title: event[:title],
+          public_fg: public,
+          closed_fg: closed,
+          price: event[:title]
+        }
+        return new_event.to_json
       rescue
         db.query('ROLLBACK')
+        return event.to_json
       end
-
-      event = get_event(event_id)
-      event.to_json
     end
 
     get '/admin/api/reports/events/:id/sales', admin_login_required: true do |event_id|
