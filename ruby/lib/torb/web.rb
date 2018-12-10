@@ -268,9 +268,10 @@ module Torb
 
       def get_events_from_array(event_ids, login_user_id = nil)
         events = db.xquery('SELECT * FROM events WHERE id in (?) LIMIT 1', event_ids.join(',')).first
+        return {} if events.nil?
 
         events.each do |event|
-          event['total']   = 0
+          event['total'] = 0
           event['remains'] = 0
           event['sheets'] = {}
           %w[S A B C].each do |rank|
